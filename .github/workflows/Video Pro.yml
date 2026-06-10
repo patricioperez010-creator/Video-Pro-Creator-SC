@@ -1,0 +1,43 @@
+name: Desplegar Video Pro Creator Automático
+
+# 1. Definimos los EVENTOS que disparan la acción
+on:
+  push:
+    branches: [ "main" ] # Se ejecuta al subir cambios a main
+  workflow_dispatch:     # Nos da el botón manual en GitHub
+
+# 2. Permisos necesarios para que GitHub publique la web por ti
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      # Paso A: Descargar el código de tu repositorio
+      - name: Checkout de código
+        uses: actions/checkout@v4
+
+      # Paso B: Configurar el entorno de GitHub Pages
+      - name: Configurar Pages
+        uses: actions/configure-pages@v4
+
+      # Paso C: Subir los archivos HTML/JS
+      - name: Subir artefactos
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.' # Sube todo el contenido del repositorio
+
+      # Paso D: Publicar la web de forma automática
+      - name: Publicar en GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
